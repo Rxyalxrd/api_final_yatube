@@ -4,7 +4,6 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 import base64
-
 from django.core.files.base import ContentFile
 
 User = get_user_model()
@@ -22,12 +21,11 @@ class Base64ImageField(serializers.ImageField):
 
 class PostSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    text = serializers.CharField(required=True)
-    image = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
         fields = '__all__'
         model = Post
+        read_only_fields = ('pub_date', 'author',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
