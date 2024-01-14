@@ -1,8 +1,13 @@
+from django.contrib.auth import get_user_model
+from posts.models import Comment, Follow, Group, Post
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueTogetherValidator
 import base64
+
 from django.core.files.base import ContentFile
-from posts.models import Comment, Follow, Group, Post, User
+
+User = get_user_model()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -16,9 +21,8 @@ class Base64ImageField(serializers.ImageField):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username', read_only=True
-    )
+    author = SlugRelatedField(slug_field='username', read_only=True)
+    text = serializers.CharField(required=True)
     image = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
@@ -45,22 +49,25 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    user = SlugRelatedField(
         slug_field='username',
-        queryset=User.objects.all(),
+        read_only=True,
+        default=serializers.CurrentUserDefault()
     )
-    following = serializers.SlugRelatedField(
+    following = SlugRelatedField(
         slug_field='username',
-        queryset=User.objects.all(),
+        queryset=User.objects.all()
     )
 
     class Meta:
-        model = Follow
         fields = '__all__'
+        model = Follow
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(), fields=('following', 'user'))
+        ]
 
     def validate(self, data):
-        if data['user'] == data['following']:
-            raise serializers.ValidationError(
-                'Нельзя подписаться на самого себя.'
-            )
+        if self.context['request'].user == data['following']:
+            raise serializers.ValidationError('Подписаться на себя нельзя.')
         return data

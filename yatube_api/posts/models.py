@@ -26,7 +26,7 @@ class Post(models.Model):
     )
     group = models.ForeignKey(
         Group, on_delete=models.CASCADE,
-        related_name="posts", blank=True, null=True
+        related_name='posts', blank=True, null=True
     )
 
     def __str__(self):
@@ -35,10 +35,14 @@ class Post(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
     )
     post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='comments'
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments'
     )
     text = models.TextField()
     created = models.DateTimeField(
@@ -48,9 +52,20 @@ class Comment(models.Model):
 
 class Follow(models.Model):
     user = models.ForeignKey(
-        User, related_name='follower', on_delete=models.CASCADE
+        User,
+        on_delete=models.CASCADE,
+        related_name='followers'
     )
     following = models.ForeignKey(
-        User, related_name='following', null=True,
-        blank=True, on_delete=models.CASCADE
+        User,
+        on_delete=models.CASCADE,
+        related_name='following_users'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
+        ]
