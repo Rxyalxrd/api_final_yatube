@@ -15,7 +15,7 @@ first_router.register(
 )
 
 urlpatterns = [
-    path('', include(first_router.urls)),
-    path('auth/', include('djoser.urls')),
-    path('', include('djoser.urls.jwt')),
+    path('v1/', include(first_router.urls)),
+    path('v1/auth/', include('djoser.urls')),
+    path('v1/', include('djoser.urls.jwt')),
 ]
